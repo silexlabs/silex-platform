@@ -16,6 +16,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
@@ -26,7 +27,19 @@ jobs:
       - run: npm run build --if-present
       - run: npm run test --if-present
 
-      # Future plans in the works to create tarball from within the caprover/deploy-from-github action.
+      - name: Determine CapRover app and token based on tag
+        id: app-info
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Version: $VERSION"
+          if [[ "$GITHUB_REF" == refs/tags/* && "$VERSION" == *-* ]]; then
+            echo "app=${{ secrets.MAIN_APP_NAME }}" >> $GITHUB_OUTPUT
+            echo "token=${{ secrets.MAIN_APP_TOKEN }}" >> $GITHUB_OUTPUT
+          else
+            echo "app=${{ secrets.APP_NAME }}" >> $GITHUB_OUTPUT
+            echo "token=${{ secrets.APP_TOKEN }}" >> $GITHUB_OUTPUT
+          fi
+
       - uses: a7ul/tar-action@v1.1.0
         with:
           command: c
@@ -48,5 +61,5 @@ jobs:
         uses: caprover/deploy-from-github@v1.0.1
         with:
           server: '${{ secrets.CAPROVER_SERVER }}'
-          app: ${{ github.ref == 'refs/heads/main' && secrets.MAIN_APP_NAME || secrets.APP_NAME }}
-          token: ${{ github.ref == 'refs/heads/main' && secrets.MAIN_APP_TOKEN || secrets.APP_TOKEN }}
+          app: ${{ steps.app-info.outputs.app }}
+          token: ${{ steps.app-info.outputs.token }}
