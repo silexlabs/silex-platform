@@ -17,7 +17,7 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
-    "@silexlabs/silex": "3.7.0-canary.3",
+    "@silexlabs/silex": "3.7.0",
     "@silexlabs/silex-dashboard": "1.6.0-canary.2",
     "dotenv": "^16.4.7"
   },
